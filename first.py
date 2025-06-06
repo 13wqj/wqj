@@ -16,7 +16,6 @@ c2.metric(label="Python", value="87%", delta="-1%")    #使用metric()函数书�
 c3.metric(label="C语言:revolving_hearts:", value="68%", delta="-10%")   #使用metric()函数书写第一列内容
 
 st.subheader("streamlit课程进度")    #使用header()函数设置子章节
-st.progress(80) 
 progress_text_1="streamlit课程进度"    #创建一个progress_text_1
 my_bar=st.progress(28,progress_text_1)   #使用st.progress()函数初始化进度条的进度值和文本
 time.sleep(0.5)    #使用sleep()函数设置时间间隔
