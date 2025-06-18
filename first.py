@@ -1,53 +1,88 @@
-import streamlit as st   #导入streamlit 库
-import pandas as pd    #导入pandas 库
-import time           #导入time库
+import streamlit as st
+import pickle
+import pandas as pd
+                                          #设置页面的标题、图标和布局
+st.set_page_config(
+    page_title="企鹅分类器",
+                                          #页面标题
+    page_icon=":penguin:",
+                                                  #页面图标
+    layout='wide',
+)
+                                                   #使用侧边栏实现多页面显示效果
+with st.sidebar:
+    st.image('images/rigth_logo.png',width=100)
+    st.title('请选择页面')
+    page=st.selectbox("请选择页面",["简介页面","预测分类页面"],label_visibility='collapsed')
+if page =="简介页面":
+    st.title("企鹅分类器：penguin:")
+    st.header('数据集介绍')
+    st.markdown("""帕尔默群岛企鹅数据集是用于数据探索和数据可视化的一个出色的数据集,
+也可以作为机器学习入门练习。
+该数据集是由Gorman 等收集，并发布在一个名为palmerpenguins的R语言包，
+以对南极企鹅种类进行分类和研究。
+该数据集记录了344行观测数据，包含3个不同物种的企鹅：阿德利企鹅、巴布亚企
+鹅和帽带企鹅的各种信息。""")
+    st.header('三种企鹅的卡通图像')
+    st.image('images/penguins.png')
+elif page =='预测分类页面':
+    st.header("预测企鹅分类")
+    st.markdown("这个Web应用是基于帕尔默群岛企鹅数据集构建的模型。只需输入6个信息，就可以预测企鹅的物种，使用下面的表单开始预测吧！")
+    col_form, col, col_logo = st.columns([3,1,21])
+    with col_form:
+#运用表单和表单提交按钮
+      with st.form('user inputs'):
+          island=st.selectbox('企鹅栖息的岛屿',options=['托尔森岛','比斯科群岛','德里姆岛'])
+          sex=st.selectbox('性别',options=['雄性','雌性'])
+          bill_length=st.number_input('喙的长度（毫米)',min_value=0.0)
+          bill_depth = st.number_input('喙的深度（毫米)',min_value=0.0)
+          flipper_length=st.number_input('翅膀的长度（毫米）',min_value=0.0)
+          body_mass = st.number_input('身体质量（克）',min_value=0.0)
+          submitted=st.form_submit_button('预测分类')
+    island_biscoe, island_dream, island_torgerson = 0, 0,0
+#根据用户输入的岛屿数据更改对应的值
+    if island =='比斯科群岛':
+        island_biscoe = 1
+    elif island =='德里姆岛':
+        island_dream=1
+    elif island =='托尔森岛':
+        island_torgerson = 1
+    sex_female, sex_male = 0, 0
+#根据用户输入的性别数据更改对应的值
+    if sex =='雌性':
+        sex_female =1
+    elif sex =='雄性':
+        sex_male =1
+    format_data=[bill_length, bill_depth, flipper_length, body_mass,
+            island_dream, island_torgerson, island_biscoe, sex_male,sex_female]
+#使用pickle的load方法从磁盘文件反序列化加载一个之前保存的随机森林模型对象
 
-st.title("🕶学生 小晶-数字档案")   #使用title()函数设置标题
+import pickle
+from sklearn.ensemble import RandomForestClassifier
 
-st.header("🔑基础信息")    #使用header()函数设置章节
-st.text("学生ID：ZSY-2023-13")    #用text()函数写学生ID
-st.write("注册时间`2023-9-1 08：00：00`|精神状态：✅正常")  #用write()函数写注册时间
-st.write("当前教室`实验楼301`|安全等级：`绝密`")     #用write()函数教室和安全等级
+# 重新训练模型（示例）
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
 
-st.header("📊技能矩阵")    #使用header()函数设置章节
-c1, c2 ,c3= st.columns(3)    #使用column()定义列3列布局 
-c1.metric(label="C语言:revolving_hearts:", value="95%", delta="2%")   #使用metric()函数书写第一列内容
-c2.metric(label="Python", value="87%", delta="-1%")    #使用metric()函数书写第一列内容
-c3.metric(label="C语言:revolving_hearts:", value="68%", delta="-10%")   #使用metric()函数书写第一列内容
+# 保存模型（确保使用当前环境）
+with open('rfc_model_new.pkl', 'wb') as f:
+    pickle.dump(model, f)
 
-st.subheader("streamlit课程进度")    #使用header()函数设置子章节
-progress_text_1="streamlit课程进度"    #创建一个progress_text_1
-my_bar=st.progress(28,progress_text_1)   #使用st.progress()函数初始化进度条的进度值和文本
-time.sleep(0.5)    #使用sleep()函数设置时间间隔
-for percent in range(30):  #循环
-     time.sleep(0.1)    #使用sleep()函数设置时间间隔      my_bar. progress(percent+1,text=f'{progress_text_1}')   #使用sprogress()函数设置进度条的进度值和文本
+    with open('rfc_model.pkl','rb') as f:
+        rfc_model = pickle.load(f)
+#使用pickle的1oad方法从磁盘文件反序列化加载一个之前保存的映射对象
+    with open('output_uniques.pkl','rb') as f:
+        output_uniques_map = pickle.load(f)
+    if submitted:
+        format_data_df = pd.DataFrame(data=[format_data], columns=rfc_model.feature_names_in)
+#使用模型对格式化后的数据format data进行预测，返回预测的类别代码
+        predict_result_code = rfc_model.predict(format_data_df)
+#将类别代码映射到具体的类别名称
+        predict_result_species = output_aniques_map[predict_result_code] [0]
+        st.write(f'根据您输入的数据，预测该企鹅的物种名称是：**{predict_result_species}**')
+    with col_logo:
+      if not submitted:
+          st.image('images/rigth_logo.png', width=300)
+      else:
+          st.image (f'images/{predict_result_species}.png', width=300)
 
-st.header("📝任务日志")    #使用header()函数设置章节
-data = {
-    '日期':['2023-10-01', '2023-10-02', '2023-10-03'],
-    '任务':['学生数字档案', '数据管理系统','课程管理系统'],
-    '状态':['✅完成', '🕒进行时', '❌未完成' ],
-    '难度':['★★☆☆☆', '★☆☆☆☆', '★★★☆☆' ]
-}      # 创建data写数据
-index = pd.Series(['0', '1', '2'], name='')    # 定义数据框所用的索引
-df = pd.DataFrame(data, index=index)    #使用DataFrame()函数根据上面创建的data和index，创建数据框
-st.dataframe(df)     #使用dataframe()函数生成数据框
-
-st.subheader("🔐最新代码成果")    #使用header()函数设置子章节
-st.code('''
-def matrix_breach():
-      while True:
-            if detect_vulnerability():
-               exploit()
-               reyurn"ACCESS GRANTED"
-            else:
-                stealth_evade()
-''', line_numbers=True)     #使用code()函数创建一个代码块并展示代码
-
-st.markdown('***')      #使用markdown()函数分割线
-
-st.write("`>>SYSTEM MESSAGE:`下一个目标已解锁...")   #使用write()函数展示方法写信息
-st.write("`>>SYSTEM MESSAGE:`课程管理系统")       #使用write()函数展示方法写信息#写信息
-st.write("`>>SYSTEM MESSAGE:`2025-06-04 17:39:58")      #使用write()函数展示方法写信息
-st.write("系统状态：在线 连接状态：已加密")         #使用write()函数展示方法写信息
- 
