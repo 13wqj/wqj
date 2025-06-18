@@ -11,7 +11,7 @@ st.set_page_config(
 )
                                                    #使用侧边栏实现多页面显示效果
 with st.sidebar:
-    st.image('images/rigth_logo.png',width=100)
+    st.image('rigth_logo.png',width=100)
     st.title('请选择页面')
     page=st.selectbox("请选择页面",["简介页面","预测分类页面"],label_visibility='collapsed')
 if page =="简介页面":
@@ -24,14 +24,14 @@ if page =="简介页面":
 该数据集记录了344行观测数据，包含3个不同物种的企鹅：阿德利企鹅、巴布亚企
 鹅和帽带企鹅的各种信息。""")
     st.header('三种企鹅的卡通图像')
-    st.image('images/penguins.png')
+    st.image('penguins.png')
 elif page =='预测分类页面':
     st.header("预测企鹅分类")
     st.markdown("这个Web应用是基于帕尔默群岛企鹅数据集构建的模型。只需输入6个信息，就可以预测企鹅的物种，使用下面的表单开始预测吧！")
     col_form, col, col_logo = st.columns([3,1,21])
     with col_form:
 #运用表单和表单提交按钮
-      with st.form('user inputs'):
+      with st.form('user_inputs'):
           island=st.selectbox('企鹅栖息的岛屿',options=['托尔森岛','比斯科群岛','德里姆岛'])
           sex=st.selectbox('性别',options=['雄性','雌性'])
           bill_length=st.number_input('喙的长度（毫米)',min_value=0.0)
@@ -56,18 +56,6 @@ elif page =='预测分类页面':
     format_data=[bill_length, bill_depth, flipper_length, body_mass,
             island_dream, island_torgerson, island_biscoe, sex_male,sex_female]
 #使用pickle的load方法从磁盘文件反序列化加载一个之前保存的随机森林模型对象
-
-import pickle
-from sklearn.ensemble import RandomForestClassifier
-
-# 重新训练模型（示例）
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-
-# 保存模型（确保使用当前环境）
-with open('rfc_model_new.pkl', 'wb') as f:
-    pickle.dump(model, f)
-
     with open('rfc_model.pkl','rb') as f:
         rfc_model = pickle.load(f)
 #使用pickle的1oad方法从磁盘文件反序列化加载一个之前保存的映射对象
@@ -82,7 +70,7 @@ with open('rfc_model_new.pkl', 'wb') as f:
         st.write(f'根据您输入的数据，预测该企鹅的物种名称是：**{predict_result_species}**')
     with col_logo:
       if not submitted:
-          st.image('images/rigth_logo.png', width=300)
+          st.image('rigth_logo.png', width=300)
       else:
-          st.image (f'images/{predict_result_species}.png', width=300)
+          st.image (f'{predict_result_species}.png', width=300)
 
